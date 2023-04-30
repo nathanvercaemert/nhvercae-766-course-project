@@ -9,6 +9,7 @@
 #include <fstream>
 #include <clang-c/Index.h>
 
+// Visitor function to find the variable name being used in a function call, excluding "fgetc" and "getc"
 enum CXChildVisitResult getChildCursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data) {
     std::string *var_name = reinterpret_cast<std::string*>(client_data);
     if (clang_getCursorKind(cursor) == CXCursor_DeclRefExpr && var_name->empty()) {
@@ -20,6 +21,7 @@ enum CXChildVisitResult getChildCursorVisitor(CXCursor cursor, CXCursor parent, 
     return CXChildVisit_Recurse;
 }
 
+// Trims the leading and trailing whitespaces from a string
 std::string trim(const std::string &s)
 {
     auto start = s.begin();
@@ -35,6 +37,7 @@ std::string trim(const std::string &s)
     return std::string(start, end + 1);
 }
 
+// Retrieves the surrounding code context of a given location, including 'before' and 'after' number of lines
 std::string get_surrounding_context(CXSourceLocation location, int before, int after) {
     unsigned line_number;
     CXFile file;
@@ -59,6 +62,7 @@ std::string get_surrounding_context(CXSourceLocation location, int before, int a
 std::vector<std::pair<std::string, std::string>> variables_and_definition;
 std::vector<std::pair<std::string, std::string>> variables_and_use;
 
+// Checks if the given cursor represents a function call with the specified name
 bool is_function_call(CXCursor cursor, const char *func_name) {
     if (clang_getCursorKind(cursor) == CXCursor_CallExpr || clang_getCursorKind(cursor) == CXCursor_UnexposedExpr) {
         CXString cursor_spelling = clang_getCursorSpelling(cursor);
@@ -69,6 +73,7 @@ bool is_function_call(CXCursor cursor, const char *func_name) {
     return false;
 }
 
+// Recursively searches for the usage of a variable and EOF within the children of the given cursor
 void find_use_in_children(CXCursor cursor, std::string &var_name, bool &eof_found) {
     std::pair<std::string*, bool*> data = std::make_pair(&var_name, &eof_found);
     clang_visitChildren(cursor,
@@ -97,6 +102,7 @@ void find_use_in_children(CXCursor cursor, std::string &var_name, bool &eof_foun
         &data);
 }
 
+// Determines the use of a variable in a given cursor and updates the variables_and_use vector
 void determine_use(CXCursor cursor) {
     std::string var_name;
     bool eof_found = false;
@@ -111,6 +117,7 @@ void determine_use(CXCursor cursor) {
     }
 }
 
+// Traverses and prints the abstract syntax tree (AST) for the given cursor, and updates variables_and_definition and variables_and_use vectors
 void print_ast(CXCursor cursor, int depth) {
     if (clang_getCursorKind(cursor) == CXCursor_FirstInvalid)
         return;
@@ -175,6 +182,7 @@ void print_ast(CXCursor cursor, int depth) {
 
 }
 
+// Prints the results of the analysis, including the variable name, its definition context, and usage context(s)
 void print_results() {
     std::map<std::string, std::pair<std::string, std::vector<std::string>>> variable_info;
 
@@ -208,6 +216,7 @@ void print_results() {
     }
 }
 
+// Main function, parses the given C file, traverses the AST, and prints the results
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Usage: ast_printer <path_to_c_file>" << std::endl;
