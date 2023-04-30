@@ -4,7 +4,7 @@ build-essential, libclang-dev, clang
 ### Compilation
 g++ ./i-o-analysis.cpp -o i-o-analysis -lclang -I /usr/lib/llvm-14/include/ -L /usr/lib/llvm-14/lib/
 
-### Run Commands
+### Run Commands (Example from Benchmarks)
 - ./i-o-analysis ./convert.c
 - ./i-o-analysis ./cpp_files.c
 
