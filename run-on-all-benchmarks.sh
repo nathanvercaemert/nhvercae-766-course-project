@@ -1,10 +1,19 @@
 #!/bin/bash
 
-# Get the path to the program
-program_path="/root/766-volume/nhvercae/i-o-analysis/i-o-analysis"
+# Check if both arguments are provided
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Usage: $0 <program_path> <directory>"
+    exit 1
+fi
 
-# Find all .c files in the current directory and its subdirectories
-find . -type f -name "*.c" | while read -r file; do
+# Get the path to the program from the first argument
+program_path="$1"
+
+# Get the target directory from the second argument
+target_directory="$2"
+
+# Find all .c files in the target directory and its subdirectories
+find "$target_directory" -type f -name "*.c" | while read -r file; do
     # Check if the file exists
     if [ -e "$file" ]; then
         # Backup the original file
